@@ -39,7 +39,7 @@ jobs:
             echo "packages=[]" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          git fetch --no-tags --prune --depth=0 origin "$BASE_REF"
+          git fetch --no-tags --prune origin "$BASE_REF"
           git diff --name-only "origin/${BASE_REF}"...HEAD \
             | awk -F/ 'BEGIN{OFS=""} $1=="packages" && NF>=2 {print $2}' \
             | sort -u \
