@@ -33,21 +33,10 @@ jobs:
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
-          set -euo pipefail
-          if [[ -z "${BASE_REF:-}" ]]; then
-            echo '[]' | tee /tmp/packages.json
-            echo "packages=[]" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          git fetch --no-tags --prune origin "$BASE_REF"
-          git diff --name-only "origin/${BASE_REF}"...HEAD \
-            | awk -F/ 'BEGIN{OFS=""} $1=="packages" && NF>=2 {print $2}' \
-            | sort -u \
-            | jq -R -s -c 'split("\n")[:-1]' | tee /tmp/packages.json
-          echo "packages=$(cat /tmp/packages.json)" >> "$GITHUB_OUTPUT"
+          bash .github/scripts/detect_changed_packages.sh | tee /dev/stderr
 
   build:
-    name: Build ${{ matrix.package }} on orin
+    name: Build package: ${{ matrix.package }} on orin
     runs-on: [self-hosted, orin]
     timeout-minutes: 120
     needs: discover
