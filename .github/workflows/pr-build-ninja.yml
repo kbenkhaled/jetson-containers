@@ -1,4 +1,4 @@
-name: PR build (core build tools)
+name: PR package builds
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number || github.ref }}-build-ninja
+  group: pr-${{ github.event.pull_request.number || github.ref }}-packages-build
   cancel-in-progress: true
 
 defaults:
@@ -17,14 +17,45 @@ defaults:
     shell: bash -euo pipefail {0}
 
 jobs:
+  discover:
+    name: Discover changed packages
+    runs-on: [self-hosted, orin]
+    outputs:
+      packages: ${{ steps.discover.outputs.packages }}
+    steps:
+      - name: Checkout repository (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute changed packages from PR
+        id: discover
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${BASE_REF:-}" ]]; then
+            echo '[]' | tee /tmp/packages.json
+            echo "packages=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch --no-tags --prune --depth=0 origin "$BASE_REF"
+          git diff --name-only "origin/${BASE_REF}"...HEAD \
+            | awk -F/ 'BEGIN{OFS=""} $1=="packages" && NF>=2 {print $2}' \
+            | sort -u \
+            | jq -R -s -c 'split("\n")[:-1]' | tee /tmp/packages.json
+          echo "packages=$(cat /tmp/packages.json)" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build ${{ matrix.package }} on orin
     runs-on: [self-hosted, orin]
     timeout-minutes: 120
+    needs: discover
+    if: needs.discover.outputs.packages != '[]'
     strategy:
       fail-fast: false
       matrix:
-        package: ["ninja", "build-essential"]
+        package: ${{ fromJson(needs.discover.outputs.packages) }}
     env:
       INDEX_HOST: jetson-ai-lab.io
     steps:
