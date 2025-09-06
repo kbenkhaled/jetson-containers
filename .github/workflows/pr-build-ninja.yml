@@ -1,4 +1,4 @@
-name: PR build (ninja)
+name: PR build (core build tools)
 
 on:
   pull_request:
@@ -17,10 +17,14 @@ defaults:
     shell: bash -euo pipefail {0}
 
 jobs:
-  build-ninja:
-    name: Build ninja on orin
+  build:
+    name: Build ${{ matrix.package }} on orin
     runs-on: [self-hosted, orin]
     timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ["ninja", "build-essential"]
     env:
       INDEX_HOST: jetson-ai-lab.io
     steps:
@@ -40,18 +44,18 @@ jobs:
             docker info | cat
           fi
 
-      - name: Build ninja package
+      - name: Build package
         id: build
         run: |
           set -o pipefail
           mkdir -p build-logs
-          ./jetson-containers build --logs build-logs ninja 2>&1 | tee build.log
+          ./jetson-containers build --logs build-logs ${{ matrix.package }} 2>&1 | tee build.log
 
       - name: Upload build logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs-${{ github.run_id }}
+          name: build-logs-${{ matrix.package }}-${{ github.run_id }}
           path: |
             build.log
             build-logs
