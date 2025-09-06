@@ -43,7 +43,7 @@ jobs:
       - name: Verify jetson-containers launcher
         run: |
           chmod +x ./jetson-containers || true
-          ./jetson-containers --help | head -n 50 | cat
+          ./jetson-containers run --help | head -n 50 | cat
 
       - name: Build ninja package
         id: build
