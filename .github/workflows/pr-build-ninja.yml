@@ -35,7 +35,7 @@ jobs:
           docker --version || true
           if ! docker info >/dev/null 2>&1; then
             echo "Retrying docker info with sudo"
-            sudo -n docker info | cat
+            sudo -n docker info | cat || true
           else
             docker info | cat
           fi
@@ -49,7 +49,8 @@ jobs:
         id: build
         run: |
           set -o pipefail
-          ./jetson-containers build ninja 2>&1 | tee build.log
+          mkdir -p build-logs
+          ./jetson-containers build --logs build-logs ninja 2>&1 | tee build.log
 
       - name: Upload build logs
         if: always()
@@ -58,7 +59,7 @@ jobs:
           name: build-logs-${{ github.run_id }}
           path: |
             build.log
-            jetson-containers/logs
+            build-logs
           if-no-files-found: warn
           retention-days: 7
 
