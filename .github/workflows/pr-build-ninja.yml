@@ -36,7 +36,7 @@ jobs:
           bash .github/scripts/detect_changed_packages.sh | tee /dev/stderr
 
   build:
-    name: Build package: ${{ matrix.package }} on orin
+    name: "Build package: ${{ matrix.package }} on orin"
     runs-on: [self-hosted, orin]
     timeout-minutes: 120
     needs: discover
