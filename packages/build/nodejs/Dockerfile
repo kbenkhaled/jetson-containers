@@ -21,6 +21,7 @@ RUN set -ex \
     && apt-get clean
 
 ENV PATH=/usr/bin/node:$PATH
+RUN echo "something"
 
 RUN set -ex \
     && node --version \

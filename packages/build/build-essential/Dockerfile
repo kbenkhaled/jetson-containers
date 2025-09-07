@@ -51,4 +51,6 @@ RUN set -ex \
 RUN echo "running tarpack"
 
 COPY tarpack vercmp /usr/local/bin/
+RUN echo "something"
+
 RUN chmod a+rx /usr/local/bin/tarpack /usr/local/bin/vercmp

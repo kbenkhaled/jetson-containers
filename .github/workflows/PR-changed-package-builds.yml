@@ -1,4 +1,4 @@
-name: PR package builds
+name: PR changed package builds
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number || github.ref }}-packages-build
+  group: pr-${{ github.event.pull_request.number || github.ref }}-changed-packages
   cancel-in-progress: true
 
 defaults:
