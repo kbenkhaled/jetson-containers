@@ -22,3 +22,5 @@ RUN set -ex \
     && apt-get clean \
     \
     && cmake --version
+RUN echo "something"
+
